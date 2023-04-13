@@ -863,7 +863,7 @@ if st.session_state.ready_for_calculate:
             for rider in st.session_state.gcdf[st.session_state.gcdf.ranking > 0].NAVN.tolist():
                 col2.write(str(int(st.session_state.gcdf.loc[st.session_state.gcdf['NAVN'] == rider][
                                        'ranking'])) + '. ' + rider + '(' + str(int(st.session_state.gcdf.loc[st.session_state.gcdf['NAVN'] == rider][
-                                       'team'] + '): ' + str(
+                                       'team'])) + '): ' + str(
                     convert_to_seconds_plain(
                         int(st.session_state.gcdf.loc[st.session_state.gcdf['NAVN'] == rider]['time']))))
 
