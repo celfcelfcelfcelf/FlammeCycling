@@ -625,7 +625,7 @@ def nyehold(df):
 #hvis alt går galt
 #st.session_state.cards, st.session_state.rdf, st.session_state.riders2 = nyehold(pd.read_csv('FRData -FRData.csv'))
 
-st.title('Actions')
+
 
 col1, col2, col3, col4 = st.columns([1,1,1,1], gap='small')
 
