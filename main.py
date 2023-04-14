@@ -100,8 +100,8 @@ def get_length(track):
     #sum
     # tr = tr.replace('^',last)
 
-    for number in tr[-13:-1]:
-        sum = sum - int(number) * 0.3
+    for number in tr[-13::]:
+        sum = sum - int(number) * 0.23
         #print(number)
 
     sum = sum / 6
@@ -564,6 +564,24 @@ def from_dict_to_df(dict,df):
         #i = 1 + i
     return(dict)
 
+
+def takes_lead(rider, df):
+
+    takes_lead = 0
+    team = df[df['NAVN'] == rider]['team'].tolist()[0]
+    group = df[df['NAVN'] == rider]['group'].tolist()[0]
+    sdf = df[df['group'] == group]
+    ratio = sdf[sdf.team == team].shape[0] / sdf.shape[0]
+    print(ratio)
+    ratio = ratio + random.randint(0, 20) / 100
+    ratio = ratio - random.randint(0, 20) / 100
+    print(ratio)
+    if ratio > 0.33:
+        takes_lead = 1
+
+    return takes_lead
+
+
 def nyehold(df):
     #global cards
     df = df.head(66)
@@ -630,7 +648,7 @@ def nyehold(df):
 col1, col2, col3, col4 = st.columns([1,1,1,1], gap='small')
 
 col1.title('Actions')
-#col1.write('------------')
+col1.write('------------')
 col2.title('Situation')
 col2.write('------------')
 col3.title('Game actions')
@@ -639,13 +657,14 @@ col4.title('The Riders')
 #col4.subheader('and their stats')
 col4.write('------------')
 
+
     #rdf = rdf.sort_values(by='position', ascending=False)
 #col3.write(st.session_state.rdf)
 
 #col3.write(st.session_state.cards)
 
 ##################
-track = '^^1--------^^^^3__------------^^^^^^^^^4------^^^^^2_----^^1-----FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
+track = '^^1---------^^^^3__------------^^^^^^^^^4------^^^^^2_----^^1-----FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
 track2 = colour_track(track[0:track.find('F')+1])
 #human_chooses_cards = False
 computer_chooses_cards = False
@@ -655,7 +674,45 @@ with col3:
     st.write('full track' + track2)
     #st.write('ryttere tilbage', len(st.session_state.riders))
 
+    with col4:
+        for team in st.session_state.rdf['team'].unique():
+            st.title(':blue[' + team + ']')
+            for rider in st.session_state.rdf[st.session_state.rdf.team == team]['NAVN'].unique():
+                st.markdown(':green[' + rider + ']')
+                st.write('Flat:' + str(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['FLAD'])) + '  Uphill:' + str(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['BJERG'])) + '  Sprint:' + str(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['SPRINT'])))
+                #st.caption()
+                #st.caption('Sprint:' + str(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['SPRINT'])))
+                flatlist = []
+                for i in range(1, 16):
+                    # field = 'FLAD'+str(i)
+                    flatlist.append(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['FLAD' + str(i)].tolist()[0]))
 
+                j = 0
+                flatstr = ''
+                for i in flatlist:
+                    flatstr = flatstr + str(i)
+                    j = 1 + j
+                    if j % 5 == 0:
+                        flatstr = flatstr + '|'
+
+                st.caption('Flat:' + flatstr)
+
+
+
+                uplist = []
+                for i in range(1, 16):
+                    # field = 'BJERG'+str(i)
+                    uplist.append(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['BJERG' + str(i)].tolist()[0]))
+
+                j = 0
+                flatstr = ''
+                for i in uplist:
+                    flatstr = flatstr + str(i)
+                    j = 1 + j
+                    if j % 5 == 0:
+                        flatstr = flatstr + '|'
+
+                st.caption('Flat:' + flatstr)
 
 
 #col2.write(st.session_state.rdf[['NAVN', 'team', 'position', 'group']])
@@ -761,51 +818,15 @@ if col3.button('make new teams'):
     #col2.write(st.session_state.riders)
     #col2.write(st.session_state.cards)
     st.session_state['placering'] = 0
-    st.session_state.riders = [st.session_state.riders2[0], st.session_state.riders2[1],
-                               st.session_state.riders2[2]]
-    #st.session_state.riders = []
+    st.session_state.riders = [st.session_state.riders2[0], st.session_state.riders2[1], st.session_state.riders2[2]]
+   
 
     st.session_state.human_chooses_cards = 9
+
+
+                #st.write('Uphill:', flatlist)
     #human_chooses_cards(st.session_state.cards, st.session_state.riders)
-    with col4:
-        for team in st.session_state.rdf['team'].unique():
-            st.title(':blue[' + team + ']')
-            for rider in st.session_state.rdf[st.session_state.rdf.team == team]['NAVN'].unique():
-                st.markdown(':green[' + rider + ']')
-                st.write('Flat:' + str(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['FLAD'])) + '  Uphill:' + str(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['BJERG'])) + '  Sprint:' + str(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['SPRINT'])))
-                #st.caption()
-                #st.caption('Sprint:' + str(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['SPRINT'])))
-                flatlist = []
-                for i in range(1, 16):
-                    # field = 'FLAD'+str(i)
-                    flatlist.append(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['FLAD' + str(i)].tolist()[0]))
 
-                j = 0
-                flatstr = ''
-                for i in flatlist:
-                    flatstr = flatstr + str(i)
-                    j = 1 + j
-                    if j % 5 == 0:
-                        flatstr = flatstr + '|'
-
-                st.caption('Flat cards:' + flatstr)
-
-
-
-                uplist = []
-                for i in range(1, 16):
-                    # field = 'BJERG'+str(i)
-                    uplist.append(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['BJERG' + str(i)].tolist()[0]))
-
-                j = 0
-                flatstr = ''
-                for i in uplist:
-                    flatstr = flatstr + str(i)
-                    j = 1 + j
-                    if j % 5 == 0:
-                        flatstr = flatstr + '|'
-
-                st.caption('Uphill cards:' + flatstr)    
 #if st.session_state.computer_chooses_cards:
 
 with col1:
@@ -826,7 +847,7 @@ with col1:
                     st.write(rider, 'played', st.session_state.cards[rider]['cards'][0][0], st.session_state.cards[rider]['cards'][0][1], st.session_state.cards[rider]['cards'][0][2])
                     #st.write('position', st.session_state.cards[rider]['position'])
                     st.session_state.cards[rider]['played_card'] = st.session_state.cards[rider]['cards'][0]
-                    st.session_state.cards[rider]['takes_lead'] = 1
+                    st.session_state.cards[rider]['takes_lead'] = takes_lead(rider, st.session_state.rdf)
                     #st.write(st.session_state.cards[rider]['played_card'])
                     del st.session_state.cards[rider]['cards'][0]
             st.session_state.ready_for_calculate = True
