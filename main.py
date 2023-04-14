@@ -629,7 +629,15 @@ st.title('Actions')
 
 col1, col2, col3, col4 = st.columns([1,1,1,1], gap='small')
 
-
+col1.title('Actions')
+#col1.write('------------')
+col2.title('Situation')
+col2.write('------------')
+col3.title('Game actions')
+col3.write('------------')
+col4.title('The Riders')
+#col4.subheader('and their stats')
+col4.write('------------')
 
     #rdf = rdf.sort_values(by='position', ascending=False)
 #col3.write(st.session_state.rdf)
