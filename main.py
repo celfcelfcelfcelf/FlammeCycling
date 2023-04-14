@@ -780,7 +780,7 @@ if col3.button('make new teams'):
                     if j % 5 == 0:
                         flatstr = flatstr + '|'
 
-                st.caption('Flat cards (from 1-15):' + flatstr)
+                st.caption('Flat cards:' + flatstr)
 
 
 
@@ -797,7 +797,7 @@ if col3.button('make new teams'):
                     if j % 5 == 0:
                         flatstr = flatstr + '|'
 
-                st.caption('Uphill cards (from 1-15):' + flatstr)    
+                st.caption('Uphill cards:' + flatstr)    
 #if st.session_state.computer_chooses_cards:
 
 with col1:
