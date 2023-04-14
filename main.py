@@ -667,8 +667,8 @@ if len(st.session_state.riders) > 0:
 
     with col1:
         #goto2 = False
-        st.write('ryttere tilbage', len(st.session_state.riders))
-        st.write(st.session_state.human_chooses_cards)
+        #st.write('ryttere tilbage', len(st.session_state.riders))
+        #st.write(st.session_state.human_chooses_cards)
         #if len(st.session_state.riders) == 3:
         #if st.session_state.human_chooses_cards == 9:
 
