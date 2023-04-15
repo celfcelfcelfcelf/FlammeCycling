@@ -686,7 +686,8 @@ computer_chooses_cards = False
 ready_for_calculate = False
 
 with col3:
-    st.write('full track' + track2)
+    st.write('Amstel Gold Race. Full track:')
+    st.write(track2)
     st.write('---------')
     st.write('-' + '= flat')
     st.write(':blue[_] = downhill')
