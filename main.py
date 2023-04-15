@@ -9,6 +9,9 @@ st.set_page_config(layout="wide")
 if "cards" not in st.session_state:
     st.session_state['cards'] = {}
 
+if "trackname" not in st.session_state:
+    st.session_state['trackname'] = ''
+
 if "riders" not in st.session_state:
     st.session_state.riders = []
 
@@ -97,7 +100,7 @@ def get_length(track):
 
     for i in reversed(range(len(tr))):
         # print(char)
-        if tr[i] in ['1', '2', '3', '4', '5']:
+        if tr[i] in ['1', '2', '3', '4', '5','F']:
             last = tr[i]
 
         if tr[i] == '^' or tr[i] == '*':
@@ -137,6 +140,8 @@ def sprint(sprint_group, cards, df):
             random.shuffle(cards[rider]['cards'])
 
             cards_available = []
+
+
             for i in range(0, min(4, len(cards[rider]['cards']))):
                 cards_available.append(cards[rider]['cards'][i][1])
 
@@ -223,7 +228,7 @@ def do_everything(df):
         # assign trætkort
         liste = []
         for i in range(1, df['group'].max() + 1):
-            print(i)
+
             liste.append(df[df.group == i].position.max() + 1000 * i)
 
         df['liste'] = df['position'] + 1000 * df['group']
@@ -306,9 +311,9 @@ def do_everything(df):
                                  group_numbers[i], 'as the group he is in splits per every', vedhang_positions[i], 'on the top of ascent')
 
         for i in range(df.shape[0] - 1):
-            print('i=', i)
+
             if group_numbers[i] == group_numbers[i + 1]:
-                print('yrs')
+
                 if positions[i] > 1 + positions[i + 1]:
                     if track[positions[i]] in ['^', 1, 2, 3, 4, 5, 6, 7, 8]:
                         st.write('Group', group_numbers[i], 'gets split on the ascent')
@@ -316,7 +321,7 @@ def do_everything(df):
                             if group_numbers[j] == group_numbers[i+1]:
                                 st.write(df.iloc[i]['NAVN'], 'falls behind group', group_numbers[i+1])
                         for k in range(i + 1, df.shape[0]):
-                            print('k', k)
+
                             group_numbers[k] = group_numbers[k] + 1
 
                     elif positions[i] > 2 + positions[i + 1]:
@@ -326,9 +331,9 @@ def do_everything(df):
                                 st.write(df.iloc[i+1]['NAVN'], 'gets dropped from group', group_numbers[i+1])
 
                         for k in range(i + 1, df.shape[0]):
-                            print('k', k)
+
                             group_numbers[k] = group_numbers[k] + 1
-                            print(group_numbers[k])
+
 
         # slipstream
         st.header('4. SLIPSTREAM')
@@ -349,7 +354,7 @@ def do_everything(df):
 
         # man kan få slipstream bagfra
         for i in range(1, df.shape[0]):
-            print(i)
+
             if positions[i] > positions[i - 1]:
                 if track[positions[i]] == '-' or track[positions[i]] == '_':
                     for j in range(0, i):
@@ -586,10 +591,10 @@ def takes_lead(rider, df):
     group = df[df['NAVN'] == rider]['group'].tolist()[0]
     sdf = df[df['group'] == group]
     ratio = sdf[sdf.team == team].shape[0] / sdf.shape[0]
-    print(ratio)
-    ratio = ratio + random.randint(0, 30) / 100
-    ratio = ratio - random.randint(0, 12) / 100
-    print(ratio)
+
+    ratio = ratio + random.randint(0, 25) / 100
+    ratio = ratio - random.randint(0, 13) / 100
+
     if ratio > 0.33:
         takes_lead = 1
 
@@ -685,18 +690,19 @@ track2 = colour_track(track[0:track.find('F')+1])
 computer_chooses_cards = False
 ready_for_calculate = False
 
-with col3:
-    st.write('Amstel Gold Race. Full track:')
-    st.write(track2)
-    st.write('---------')
-    st.write('-' + '= flat')
-    st.write(':blue[_] = downhill')
-    st.write(':red[^] = uphill')
-    st.write(':red[*] = steep uphill')
-    st.write(':red[1,2,3,4,5] = end of ascent where group splits')
-    st.write(':green[F] = Finish')
-    st.write('---------')
-    #st.write('ryttere tilbage', len(st.session_state.riders))
+
+if st.session_state.game_started:
+    with col3:
+        st.write(st.session_state['trackname'] + '. Full Track: ' + track2)
+        st.write('---------')
+        st.write('-' + '= flat')
+        st.write(':blue[_] = downhill')
+        st.write(':red[^] = uphill')
+        st.write(':red[*] = steep uphill')
+        st.write(':red[1,2,3,4,5] = end of ascent where group splits')
+        st.write(':green[F] = Finish')
+        st.write('---------')
+        #st.write('ryttere tilbage', len(st.session_state.riders))
 
 if st.session_state.game_started:
     with col4:
@@ -836,23 +842,31 @@ if len(st.session_state.riders) > 0:
 
 
 #st.session_state.riders = []
+tracks = ['Amstel Gold Race', 'Fleche Wallone']
 
 if st.session_state.game_started == False:
-    if col3.button('Play Amstel Gold Race'):
-        st.session_state.cards, st.session_state.rdf, st.session_state.gcdf, st.session_state.riders2 = nyehold(pd.read_csv('FRData -FRData.csv', encoding='utf-8'))
-        #col2.write('riders:')
-        #col2.write(st.session_state.riders)
-        #col2.write(st.session_state.cards)
-        st.session_state['placering'] = 0
-        st.session_state.riders = [st.session_state.riders2[0], st.session_state.riders2[1],
-                                   st.session_state.riders2[2]]
-        #st.session_state.riders = []
+    st.session_state['trackname'] = col3.selectbox('Choose_course', tracks)
 
-        st.session_state.human_chooses_cards = 9
-        st.session_state.game_started = True
+    if st.session_state['trackname'] == 'Fleche Wallone':
+        track = '-^4-----------------------****2----------^^^3----------^2------******FFFFFFFFFFFFFF'
+    if st.session_state['trackname'] == 'Amstel Gold Race':
+        track = '-------^3------*2--^4--***2-----------*2-----^^3------^3-------FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
 
-                #st.write('Uphill:', flatlist)
-    #human_chooses_cards(st.session_state.cards, st.session_state.riders)
+    track2 = colour_track(track[0:track.find('F') + 1])
+    st.session_state.cards, st.session_state.rdf, st.session_state.gcdf, st.session_state.riders2 = nyehold(pd.read_csv('FRData -FRData.csv', encoding='utf-8'))
+    #col2.write('riders:')
+    #col2.write(st.session_state.riders)
+    #col2.write(st.session_state.cards)
+    st.session_state['placering'] = 0
+    st.session_state.riders = [st.session_state.riders2[0], st.session_state.riders2[1],
+                               st.session_state.riders2[2]]
+    #st.session_state.riders = []
+
+    st.session_state.human_chooses_cards = 9
+    st.session_state.game_started = True
+
+            #st.write('Uphill:', flatlist)
+#human_chooses_cards(st.session_state.cards, st.session_state.riders)
 
 #if st.session_state.computer_chooses_cards:
 
