@@ -587,8 +587,8 @@ def takes_lead(rider, df):
     sdf = df[df['group'] == group]
     ratio = sdf[sdf.team == team].shape[0] / sdf.shape[0]
     print(ratio)
-    ratio = ratio + random.randint(0, 20) / 100
-    ratio = ratio - random.randint(0, 20) / 100
+    ratio = ratio + random.randint(0, 30) / 100
+    ratio = ratio - random.randint(0, 12) / 100
     print(ratio)
     if ratio > 0.33:
         takes_lead = 1
