@@ -80,6 +80,13 @@ def tjek_bakke(pos1, pos2, track):
     else:
         return 0
 
+def tjek_stejl(pos1, pos2, track):
+    pos1 = int(pos1)
+    pos2 = int(pos2)
+    if '*' in track[pos1:pos2]:
+        return 1
+    else:
+        return 0
 
 def get_length(track):
     tr = track[0:track.find('F')]
@@ -93,7 +100,7 @@ def get_length(track):
         if tr[i] in ['1', '2', '3', '4', '5']:
             last = tr[i]
 
-        if tr[i] == '^':
+        if tr[i] == '^' or tr[i] == '*':
             tr[i] = last
 
     sum = 0
@@ -208,7 +215,9 @@ def do_everything(df):
 
         df['noECs_bakke'] = df.apply(lambda row: tjek_bakke(row['old_position'], row['position'], track), axis=1)
         df['noECs_bakke'] = np.floor((15 - df['played_card']) / 10) * df['noECs_bakke']
-
+        df['noECs_stejl'] = df.apply(lambda row: tjek_stejl(row['old_position'], row['position'], track), axis=1)
+        df['noECs_stejl'] = df['noECs_stejl'] = np.floor((15 - df['played_card']) / 5) * df['noECs_stejl']
+        df['noECs_bakke'] = np.maximum(df['noECs_bakke'], df['noECs_stejl'])
         df['noECs'] = np.maximum(df['noECs_bakke'], df['noECs'])
 
         # assign trætkort
@@ -234,8 +243,10 @@ def do_everything(df):
                     st.write(':red[', df.iloc[i]['NAVN'], ']takes 1 exhaustion card for playing card no 6-10 and taking the lead in the group')
                 if df.iloc[i]['noECs_bakke'] == 1:
                     st.write(':red[', df.iloc[i]['NAVN'], ']takes 1 exhaustion card for playing card no 1-5 on an ascent')
+                if df.iloc[i]['noECs_bakke'] == 2:
+                    st.write(':red[', df.iloc[i]['NAVN'], ']takes 2 exhaustion cards for playing card no 1-5 on a steep ascent')
 
-        #col3.write(df[['NAVN', 'old_position', 'moved_fields', 'position', 'noECs_bakke', 'ECs', 'noECs', 'method_takes_ECs']])
+            #col3.write(df[['NAVN', 'old_position', 'moved_fields', 'position', 'noECs_bakke', 'ECs', 'noECs', 'method_takes_ECs']])
 
         #del df['liste']
         # gruppesplit
@@ -431,6 +442,7 @@ def transfer_ECs(df, dict):
 
 def colour_track(track):
     stigning = 0
+    #track = track.replace('*','')
     track2 = track
     i = 0
 
@@ -439,10 +451,10 @@ def colour_track(track):
         # print(track2)
         # print(track2[stigning:])
 
-        if track2[stigning:].find('^') == -1:
+        if track2.replace('*','^')[stigning:].find('^') == -1:
             break
 
-        stigning = track2[stigning:].find('^') + stigning
+        stigning = track2.replace('*','^')[stigning:].find('^') + stigning
         # print('stigning', stigning)
 
         track2 = track2[0:stigning] + ':red[' + track2[stigning:]
@@ -472,9 +484,6 @@ def colour_track(track):
     i = 0
     # blue
     while i < 20:
-        print('s2', stigning)
-        print(track2)
-        # print(track2[stigning:])
 
         if track2[nedad:].find('_') == -1:
             break
@@ -489,7 +498,7 @@ def colour_track(track):
         if ned_igen == -1:
             ned_igen = 1000
 
-        ned_igen2 = track2[nedad:].find('^')
+        ned_igen2 = track2.replace('*','^')[nedad:].find('^')
         if ned_igen2 == -1:
             ned_igen2 = 1000
 
@@ -521,6 +530,8 @@ def move_rider(position, played_card, track):
     elif '^' in track[position:position+played_card[1]]:
         new_position = position + played_card[2]
     elif track[position-1] == '^':
+        new_position = position + played_card[2]
+    elif track[position-1] == '*':
         new_position = position + played_card[2]
     elif track[position] == 'F':
         new_position = position + 7
@@ -668,7 +679,7 @@ col4.write('------------')
 
 ##################
 #track = '^^1---------^^^^3__------------^^^^^^^^^4------^^^^^2_----^^1-----FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
-track = '-------^3------^2--^4--^^^2-----------^2-----^^3------^3-------FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
+track = '-------^3------*2--^4--***2-----------*2-----^^3------^3-------FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
 track2 = colour_track(track[0:track.find('F')+1])
 #human_chooses_cards = False
 computer_chooses_cards = False
@@ -676,6 +687,14 @@ ready_for_calculate = False
 
 with col3:
     st.write('full track' + track2)
+    st.write('---------')
+    st.write('-' + '= flat')
+    st.write(':blue[_] = downhill')
+    st.write(':red[^] = uphill')
+    st.write(':red[*] = steep uphill')
+    st.write(':red[1,2,3,4,5] = end of ascent where group splits')
+    st.write(':green[F] = Finish')
+    st.write('---------')
     #st.write('ryttere tilbage', len(st.session_state.riders))
 
 if st.session_state.game_started:
@@ -817,18 +836,19 @@ if len(st.session_state.riders) > 0:
 
 #st.session_state.riders = []
 
-if col3.button('Play Amstel Gold Race'):
-    st.session_state.cards, st.session_state.rdf, st.session_state.gcdf, st.session_state.riders2 = nyehold(pd.read_csv('FRData -FRData.csv', encoding='utf-8'))
-    #col2.write('riders:')
-    #col2.write(st.session_state.riders)
-    #col2.write(st.session_state.cards)
-    st.session_state['placering'] = 0
-    st.session_state.riders = [st.session_state.riders2[0], st.session_state.riders2[1],
-                               st.session_state.riders2[2]]
-    #st.session_state.riders = []
+if st.session_state.game_started == False:
+    if col3.button('Play Amstel Gold Race'):
+        st.session_state.cards, st.session_state.rdf, st.session_state.gcdf, st.session_state.riders2 = nyehold(pd.read_csv('FRData -FRData.csv', encoding='utf-8'))
+        #col2.write('riders:')
+        #col2.write(st.session_state.riders)
+        #col2.write(st.session_state.cards)
+        st.session_state['placering'] = 0
+        st.session_state.riders = [st.session_state.riders2[0], st.session_state.riders2[1],
+                                   st.session_state.riders2[2]]
+        #st.session_state.riders = []
 
-    st.session_state.human_chooses_cards = 9
-    st.session_state.game_started = True
+        st.session_state.human_chooses_cards = 9
+        st.session_state.game_started = True
 
                 #st.write('Uphill:', flatlist)
     #human_chooses_cards(st.session_state.cards, st.session_state.riders)
@@ -951,6 +971,7 @@ if st.session_state.ready_for_calculate:
 
             if st.session_state.rdf.shape[0] == 0:
                 col2.header('Race is over')
+                st.session_state.game_started = False
 
         #st.session_state.human_chooses_cards = True
 
