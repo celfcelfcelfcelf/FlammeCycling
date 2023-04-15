@@ -664,7 +664,9 @@ col4.write('------------')
 #col3.write(st.session_state.cards)
 
 ##################
-track = '^^1---------^^^^3__------------^^^^^^^^^4------^^^^^2_----^^1-----FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
+#track = '^^1---------^^^^3__------------^^^^^^^^^4------^^^^^2_----^^1-----FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
+#amstel
+track = '-------^3------^2--^4--^^^2-----------^2-----^^3------^3-------FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
 track2 = colour_track(track[0:track.find('F')+1])
 #human_chooses_cards = False
 computer_chooses_cards = False
@@ -773,7 +775,7 @@ if len(st.session_state.riders) > 0:
 
 #st.session_state.riders = []
 
-if col3.button('make new teams'):
+if col3.button('Start Amstel Gold Race'):
     st.session_state.cards, st.session_state.rdf, st.session_state.gcdf, st.session_state.riders2 = nyehold(pd.read_csv('FRData -FRData.csv', encoding='utf-8'))
     #col2.write('riders:')
     #col2.write(st.session_state.riders)
