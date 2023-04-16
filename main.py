@@ -15,6 +15,9 @@ if "trackname" not in st.session_state:
 if "riders" not in st.session_state:
     st.session_state.riders = []
 
+if "level" not in st.session_state:
+    st.session_state.level = 0
+
 if "game_started" not in st.session_state:
     st.session_state.game_started = False
 
@@ -168,14 +171,15 @@ def sprint(sprint_group, cards, df):
     return cards
 
 
-def do_everything(df):
+def do_everything(df, printo=True):
 
     with col3:
         #df['position'] = df['position'] + df['moved_fields']
         # move riders
         #df['takes_lead'] = np.random.randint(0, 2, df.shape[0])
         df = df.sort_values(by='old_position', ascending = False)
-        st.header('1. MOVE')
+        if printo == True:
+            st.header('1. MOVE')
         df['tl2'] = df['takes_lead'] * df['position']
 
         for i in range(1, df['group'].max() + 1):
@@ -194,16 +198,19 @@ def do_everything(df):
         #col3.write(df[['NAVN', 'old_position','moved_fields','position']])
         del df['tl2']
 
-        for i in range(0, df.shape[0]):
-            st.write(df.iloc[i]['NAVN'])
-            st.write('From group', df.iloc[i]['group'], 'moves', df.iloc[i]['moved_fields'], 'fields from', df.iloc[i]['old_position'], 'to', df.iloc[i]['position'])
-            if df.iloc[i]['takes_lead'] == 0:
-                st.write('refrains from leading')
+        if printo == True:
 
-            st.write(' ')
+            for i in range(0, df.shape[0]):
+                st.write(df.iloc[i]['NAVN'])
+                st.write('From group', df.iloc[i]['group'], 'moves', df.iloc[i]['moved_fields'], 'fields from', df.iloc[i]['old_position'], 'to', df.iloc[i]['position'])
+                if df.iloc[i]['takes_lead'] == 0:
+                    st.write('refrains from leading')
 
+                st.write(' ')
 
-        st.header('2. EXHAUSTION CARDS')
+        if printo == True:
+
+            st.header('2. EXHAUSTION CARDS')
         df['ECs'] = 0
         # df['played_card'] = 'kort 5'
         # df['played_card'][0:4] = 'kort 10'
@@ -238,24 +245,26 @@ def do_everything(df):
         df['noECs_bakke'] = df['noECs_bakke'] * df['method_takes_ECs']
         df['ECs'] = np.maximum(df['noECs_bakke'], df['ECs'])
 
+        if printo == True:
         #WRITE!!!
-        for i in range(0, df.shape[0]):
-            if df.iloc[i]['ECs'] > 1:
+            for i in range(0, df.shape[0]):
+                if df.iloc[i]['ECs'] > 1:
 
-                st.write(':red[', df.iloc[i]['NAVN'], '] takes 2 exhaustion cards for playing card no 1-5 and taking the lead in the group')
-            if df.iloc[i]['ECs'] == 1:
-                if df.iloc[i]['noECs_bakke'] == 0:
-                    st.write(':red[', df.iloc[i]['NAVN'], ']takes 1 exhaustion card for playing card no 6-10 and taking the lead in the group')
-                if df.iloc[i]['noECs_bakke'] == 1:
-                    st.write(':red[', df.iloc[i]['NAVN'], ']takes 1 exhaustion card for playing card no 1-5 on an ascent')
-                if df.iloc[i]['noECs_bakke'] == 2:
-                    st.write(':red[', df.iloc[i]['NAVN'], ']takes 2 exhaustion cards for playing card no 1-5 on a steep ascent')
+                    st.write(':red[', df.iloc[i]['NAVN'], '] takes 2 exhaustion cards for playing card no 1-5 and taking the lead in the group')
+                if df.iloc[i]['ECs'] == 1:
+                    if df.iloc[i]['noECs_bakke'] == 0:
+                        st.write(':red[', df.iloc[i]['NAVN'], ']takes 1 exhaustion card for playing card no 6-10 and taking the lead in the group')
+                    if df.iloc[i]['noECs_bakke'] == 1:
+                        st.write(':red[', df.iloc[i]['NAVN'], ']takes 1 exhaustion card for playing card no 1-5 on an ascent')
+                    if df.iloc[i]['noECs_bakke'] == 2:
+                        st.write(':red[', df.iloc[i]['NAVN'], ']takes 2 exhaustion cards for playing card no 1-5 on a steep ascent')
 
             #col3.write(df[['NAVN', 'old_position', 'moved_fields', 'position', 'noECs_bakke', 'ECs', 'noECs', 'method_takes_ECs']])
 
         #del df['liste']
         # gruppesplit
-        st.header('3. GROUP SPLIT')
+        if printo == True:
+            st.header('3. GROUP SPLIT')
         df['vedhang'] = df.apply(lambda row: check_vedhang(row['moved_fields'], row['position'], track), axis=1)
 
         df = df.sort_values(by=['group', 'position'], ascending=[True, False])
@@ -297,17 +306,20 @@ def do_everything(df):
 
             if group_numbers[i] > old_groups[i]:
                 if old_groups[i] == 1:
-                    st.write(':red[', df.iloc[i]['NAVN'], ']moves from group', old_groups[i], ' to group', group_numbers[i], 'as his group get splitted per every', vedhang_positions[i], 'at the top of ascent')
+                    if printo == True:
+                        st.write(':red[', df.iloc[i]['NAVN'], ']moves from group', old_groups[i], ' to group', group_numbers[i], 'as his group get splitted per every', vedhang_positions[i], 'at the top of ascent')
                     group_diff = group_numbers[i] - old_groups[i]
                     previous_group = old_groups[i]
 
                 if old_groups[i] > 1:
                     if group_numbers[i] - old_groups[i] == group_diff:
-                        st.write(':red[', df.iloc[i]['NAVN'], ']moves from group', old_groups[i], ' to group',
+                        if printo == True:
+                            st.write(':red[', df.iloc[i]['NAVN'], ']moves from group', old_groups[i], ' to group',
                                  group_numbers[i], 'as the group in front of him splits')
 
                     else:
-                        st.write(':red[', df.iloc[i]['NAVN'], ']moves from group', old_groups[i], ' to group',
+                        if printo == True:
+                            st.write(':red[', df.iloc[i]['NAVN'], ']moves from group', old_groups[i], ' to group',
                                  group_numbers[i], 'as the group he is in splits per every', vedhang_positions[i], 'on the top of ascent')
 
         for i in range(df.shape[0] - 1):
@@ -316,10 +328,12 @@ def do_everything(df):
 
                 if positions[i] > 1 + positions[i + 1]:
                     if track[positions[i]] in ['^', 1, 2, 3, 4, 5, 6, 7, 8]:
-                        st.write('Group', group_numbers[i], 'gets split on the ascent')
+                        if printo == True:
+                            st.write('Group', group_numbers[i], 'gets split on the ascent')
                         for j in range(i +1, df.shape[0] - 1):
                             if group_numbers[j] == group_numbers[i+1]:
-                                st.write(df.iloc[i]['NAVN'], 'falls behind group', group_numbers[i+1])
+                                if printo == True:
+                                    st.write(df.iloc[i]['NAVN'], 'falls behind group', group_numbers[i+1])
                         for k in range(i + 1, df.shape[0]):
 
                             group_numbers[k] = group_numbers[k] + 1
@@ -328,7 +342,8 @@ def do_everything(df):
                         st.write('Group', group_numbers[i], 'gets split on the ascent')
                         for j in range(i + 1, df.shape[0] - 1):
                             if group_numbers[j] == group_numbers[i + 1]:
-                                st.write(df.iloc[i+1]['NAVN'], 'gets dropped from group', group_numbers[i+1])
+                                if printo == True:
+                                    st.write(df.iloc[i+1]['NAVN'], 'gets dropped from group', group_numbers[i+1])
 
                         for k in range(i + 1, df.shape[0]):
 
@@ -336,9 +351,10 @@ def do_everything(df):
 
 
         # slipstream
-        st.header('4. SLIPSTREAM')
+        if printo == True:
+            st.header('4. SLIPSTREAM')
         k = -100
-        pos_before = positions
+        pos_before = positions.copy()
 
         for i in range(df.shape[0]):
             if group_numbers[i] > group_numbers[i - 1]:
@@ -363,11 +379,13 @@ def do_everything(df):
 
         for i in range(1, df.shape[0]):
             if positions[i] > pos_before[i]:
-                st.write(df.iloc[i]['NAVN'], 'moves from',pos_before[i] ,'to', positions[i],'by getting slipstream')
+                if printo == True:
+                    st.write(df.iloc[i]['NAVN'], 'moves from',pos_before[i] ,'to', positions[i],'from getting slipstream')
 
 
         old_groups = group_numbers * 1
-        st.header('5. GROUP MERGE')
+        if printo == True:
+            st.header('5. GROUP MERGE')
 
 
         for i in range(1, df.shape[0]):
@@ -384,8 +402,9 @@ def do_everything(df):
                #             print('fire')
                             group_numbers[j] = group_numbers[j] - 1
                             if written == 0:
-                                st.write('group', group_numbers[j]+1, 'gets merged into group', group_numbers[j])
-                                written = 1
+                                if printo == True:
+                                    st.write('group', group_numbers[j]+1, 'gets merged into group', group_numbers[j])
+                                    written = 1
         sprint_groups = []
 
         for i in range(df.shape[0]):
@@ -410,7 +429,8 @@ def do_everything(df):
 
 
         if sprint_groups:
-            st.header(':green[6. SPRINT]')
+            if printo == True:
+                st.header(':green[6. SPRINT]')
             for group in sprint_groups:
 
                 df.loc[df['group'] == group, ['prel_time']] = (track.find('F') - df['old_position']) / (
@@ -526,7 +546,7 @@ def colour_track(track):
     return track2
 
 
-def move_rider(position, played_card, track):
+def move_rider(position, played_card, track, level = 0):
     if track[position] == '_':
 
         new_position = position + max(5, played_card[1])
@@ -543,6 +563,15 @@ def move_rider(position, played_card, track):
     else:
 
         new_position = position + played_card[1]
+
+    if random.randint(0,5)<level:
+        new_position = new_position + 1
+        if random.randint(5,10)<level:
+            new_position = new_position + 1
+    if random.randint(-5,-1)>level:
+        new_position = new_position - 1
+        if random.randint(-10,-6)>level:
+            new_position = new_position - 1
 
     moved_fields = new_position-position
     return new_position, moved_fields
@@ -584,7 +613,7 @@ def from_dict_to_df(dict,df):
     return(dict)
 
 
-def takes_lead(rider, df):
+def takes_lead_fc(rider, df):
 
     takes_lead = 0
     team = df[df['NAVN'] == rider]['team'].tolist()[0]
@@ -645,6 +674,7 @@ def nyehold(df):
         cards[rider]['sprint'] = rdf.iloc[i]['SPRINT']
         cards[rider]['sprint_points'] = 0
         cards[rider]['ranking'] = 0
+        cards[rider]['takes_lead'] = 1
 
 
         for j in range(15):
@@ -657,6 +687,64 @@ def nyehold(df):
         gcdf['prel_time'] = 1000
 
     return cards, rdf, gcdf, riders
+
+def sammehold(df):
+    #global cards
+
+    rdf = df[0:9]
+    rdf['team'] = 'V'
+    rdf['team'][0:3] = 'Me'
+    rdf['team'][3:6] = 'Comp1'
+    rdf['team'][6:9] = 'Comp2'
+    rdf['method'] = 'V'
+    rdf['method'][0:3] = 'Human'
+    rdf['method'][3:6] = 'Comp1'
+    rdf['method'][6:9] = 'Comp1'
+    rdf['method_takes_ECs'] = 1
+    rdf['method_takes_ECs'][3:9] = 0
+    rdf['takes_lead'] = 1
+    rdf['ranking'] = 1
+    rdf['played_card'] = ''
+    rdf['moved_fields'] = 0
+    rdf['position'] = 0
+    rdf['old_position'] = 0
+    rdf['index2'] = range(0,9)
+    rdf['noECs'] = 0
+    rdf['group'] = 1
+    rdf['index'] = range(1,10)
+    rdf['ECs'] = 0
+    rdf['prel_time'] = 0
+
+    riders = rdf.NAVN.tolist()
+
+
+    cards = {}
+    i = -1
+    for rider in riders:
+        i = i + 1
+        cards[rider] = {}
+        cards[rider]['position'] = 0
+        cards[rider]['cards'] = []
+        cards[rider]['discarded'] = []
+        cards[rider]['group'] = 1
+        cards[rider]['played_card'] = 0
+        cards[rider]['moved_fields'] = 0
+        cards[rider]['sprint'] = rdf.iloc[i]['SPRINT']
+        cards[rider]['sprint_points'] = 0
+        cards[rider]['ranking'] = 0
+        cards[rider]['takes_lead'] = 1
+
+
+        for j in range(15):
+            cards[rider]['cards'].append(['kort: ' + str(j + 1), int(rdf.iloc[i, 17 + j]), int(rdf.iloc[i, 32 + j])])
+
+        random.shuffle(cards[rider]['cards'])
+        #cards['select']={}
+
+        gcdf = rdf.copy()
+        gcdf['prel_time'] = 1000
+
+    return cards, rdf, riders
 
 
 #hvis alt går galt
@@ -690,6 +778,8 @@ track2 = colour_track(track[0:track.find('F')+1])
 computer_chooses_cards = False
 ready_for_calculate = False
 
+
+st.session_state.level = col1.slider('Level',-10,10,0,1)
 
 if st.session_state.game_started:
     with col3:
@@ -744,6 +834,7 @@ if st.session_state.game_started:
                         flatstr = flatstr + '|'
 
                 st.caption('Flat:' + flatstr)
+                #st.caption(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['RESULTATER'].tolist()[0])
 
 
 #col2.write(st.session_state.rdf[['NAVN', 'team', 'position', 'group']])
@@ -865,7 +956,8 @@ if st.session_state.game_started == False:
     st.session_state.human_chooses_cards = 9
     st.session_state.game_started = True
 
-            #st.write('Uphill:', flatlist)
+
+    #st.write('Uphill:', flatlist)
 #human_chooses_cards(st.session_state.cards, st.session_state.riders)
 
 #if st.session_state.computer_chooses_cards:
@@ -884,11 +976,11 @@ with col1:
                 if st.session_state.cards[rider]['played_card'] == 0:
                     if len(st.session_state.cards[rider]['cards']) == 0:
                         st.session_state.cards[rider]['cards'].append(['EC15',2,2])
-                    st.session_state.cards[rider]['position'], st.session_state.cards[rider]['moved_fields'] = move_rider(st.session_state.cards[rider]['position'], st.session_state.cards[rider]['cards'][0], track)
+                    st.session_state.cards[rider]['position'], st.session_state.cards[rider]['moved_fields'] = move_rider(st.session_state.cards[rider]['position'], st.session_state.cards[rider]['cards'][0], track, st.session_state.level)
                     st.write(rider, 'played', st.session_state.cards[rider]['cards'][0][0], st.session_state.cards[rider]['cards'][0][1], st.session_state.cards[rider]['cards'][0][2])
                     #st.write('position', st.session_state.cards[rider]['position'])
                     st.session_state.cards[rider]['played_card'] = st.session_state.cards[rider]['cards'][0]
-                    st.session_state.cards[rider]['takes_lead'] = takes_lead(rider, st.session_state.rdf)
+                    st.session_state.cards[rider]['takes_lead'] = takes_lead_fc(rider, st.session_state.rdf)
                     #st.write(st.session_state.cards[rider]['played_card'])
                     del st.session_state.cards[rider]['cards'][0]
             st.session_state.ready_for_calculate = True
@@ -990,7 +1082,8 @@ if st.session_state.ready_for_calculate:
 
         #st.session_state.human_chooses_cards = True
 
-
+        #col1.selectbox(st.session_state.riders2[0], st.session_state.riders2[1], st.session_state.riders2[2]]):
+        #    st.write('fall back')
         if col1.button('start new round'):
             for rider in [st.session_state.riders2[0], st.session_state.riders2[1], st.session_state.riders2[2]]:
                 st.write('start new round')
@@ -1011,17 +1104,6 @@ if st.session_state.ready_for_calculate:
 
 #Write Groups in column 2
 
-if col3.button('reshuffler'):
-#reshuffler = col3.button([st.session_state.riders2[0], st.session_state.riders2[1],
-                                   #st.session_state.riders2[2]]
-    for rider in [st.session_state.riders2[0], st.session_state.riders2[1],
-                                   st.session_state.riders2[2]]:
-
-        col3.write(rider)
-        random.shuffle(st.session_state.cards[rider]['discarded'])
-        for card in st.session_state.cards[rider]['discarded']:
-            st.session_state.cards[rider]['cards'].append(card)
-        st.session_state.cards[rider]['discarded'] = []
 
 with col2:
     if st.session_state.rdf.shape[0] > 0:
@@ -1064,8 +1146,6 @@ with col2:
 
 
     #st.write(st.session_state.rdf[['NAVN', 'position', 'group', 'ECs','played_card','takes_lead','noECs', 'method_takes_ECs', 'prel_time', 'time', 'ranking']])
-
-
 
 
 
