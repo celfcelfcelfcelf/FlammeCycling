@@ -9,6 +9,9 @@ st.set_page_config(layout="wide")
 if "cards" not in st.session_state:
     st.session_state['cards'] = {}
 
+if "track" not in st.session_state:
+    st.session_state['track'] = '-F'
+
 if "trackname" not in st.session_state:
     st.session_state['trackname'] = ''
 
@@ -94,31 +97,169 @@ def tjek_stejl(pos1, pos2, track):
     else:
         return 0
 
+
+def simulate():
+    # if col3.button('simulate'):
+    st.session_state.gcdf['points'] = 0
+    j = 0
+    for i in range(0, 20):
+        st.session_state.riders = []
+
+
+        while st.session_state.rdf.shape[0] > 0:
+
+            # st.session_state.computer_chooses_cards = False
+            for rider in st.session_state.cards:
+
+                if len(st.session_state.cards[rider]['cards']) == 0:
+                    st.session_state.cards[rider]['cards'].append(['EC15', 2, 2])
+                st.session_state.cards[rider]['position'], st.session_state.cards[rider][
+                    'moved_fields'] = move_rider(
+                    st.session_state.cards[rider]['position'], st.session_state.cards[rider]['cards'][0],
+                    st.session_state['track'],
+                    st.session_state.level)
+                # st.write('position', st.session_state.cards[rider]['position'])
+                st.session_state.cards[rider]['played_card'] = st.session_state.cards[rider]['cards'][0]
+                st.session_state.cards[rider]['takes_lead'] = takes_lead_fc(rider, st.session_state.rdf)
+                # st.write(st.session_state.cards[rider]['played_card'])
+                del st.session_state.cards[rider]['cards'][0]
+
+            st.session_state.rdf = transfer_positions(st.session_state.cards, st.session_state.rdf)
+            # st.write(st.session_state.rdf.group.max())
+            st.session_state.rdf, sprint_groups = do_everything(st.session_state.rdf, st.session_state.track, printo=False)
+
+            st.session_state.cards = transfer_ECs(st.session_state.rdf, st.session_state.cards)
+            st.session_state.cards = from_dict_to_df(st.session_state.cards, st.session_state.rdf)
+
+            # st.session_state.riders = [st.session_state.riders2[0], st.session_state.riders2[1],
+            #                               st.session_state.riders2[2]]
+
+            # st.session_state.riders =st.session_state.rdf[st.session_state.rdf.team == 'Me']['NAVN'].tolist()
+
+            if sprint_groups:
+
+                for sprint_group in sprint_groups:
+                    st.session_state.cards = sprint(sprint_group, st.session_state.cards, st.session_state.rdf)
+
+                    st.session_state.rdf = rankings_from_dict_to_df(st.session_state.cards, st.session_state.rdf)
+                    st.session_state.rdf = st.session_state.rdf.sort_values(by='ranking', ascending=True)
+
+                    # del st   .session_state.cards[rider]
+                    # st.session_state.riders.remove(rider)
+                st.session_state.riders = st.session_state.rdf[st.session_state.rdf.team == 'Me']['NAVN'].tolist()
+
+                riders_left = []
+                for rider in st.session_state.cards:
+                    riders_left.append(rider)
+
+                for rider in riders_left:
+                    if st.session_state.cards[rider]['ranking'] > 0:
+                        # col3.write(rider + 'gets removed')
+                        del st.session_state.cards[rider]
+                        if rider in st.session_state.riders:
+                            st.session_state.riders.remove(rider)
+
+                        st.session_state.rdf.loc[st.session_state.rdf['NAVN'] == rider,
+                        'played_card'] = 'Finished 15'
+                        st.session_state.gcdf.loc[st.session_state.gcdf['NAVN'] == rider,
+                        'time'] = int(st.session_state.rdf.loc[st.session_state.rdf['NAVN'] == rider]['time'])
+                        st.session_state.gcdf.loc[st.session_state.gcdf['NAVN'] == rider,
+                        'prel_time'] = int(
+                            st.session_state.rdf.loc[st.session_state.rdf['NAVN'] == rider]['prel_time'])
+
+                        st.session_state.gcdf.loc[st.session_state.gcdf['NAVN'] == rider,
+                        'ranking'] = int(st.session_state.rdf.loc[st.session_state.rdf['NAVN'] == rider]['ranking'])
+
+                        st.session_state.rdf.loc[st.session_state.rdf['NAVN'] == rider,
+                        'played_card'] = 'Finished 15'
+
+                        st.session_state.rdf = st.session_state.rdf.drop(
+                            st.session_state.rdf[st.session_state.rdf['NAVN'] == rider].index)
+
+                # position = 100+position, played_card = 15
+                # st.write('rdf:')
+
+                # st.write('gcdf:')
+                st.session_state.gcdf['time'] = st.session_state.gcdf['prel_time'] - st.session_state.gcdf[
+                    'prel_time'].min()
+
+                # st.write(st.session_state.gcdf[
+                #         ['NAVN', 'position', 'group', 'ECs', 'played_card',
+                #         'prel_time', 'time', 'ranking']])
+
+            # col3.write(st.session_state.cards)
+
+            # col2.header(':green[Results]')
+            # st.session_state.gcdf = st.session_state.gcdf.sort_values(by='ranking', ascending = True)
+
+            # for rider in st.session_state.gcdf[st.session_state.gcdf.ranking > 0].NAVN.tolist():
+            # col2.write(str(int(st.session_state.gcdf.loc[st.session_state.gcdf['NAVN'] == rider][
+            #                       'ranking'])) + '. ' + rider + '(' + str(st.session_state.gcdf.loc[st.session_state.gcdf['NAVN'] == rider]['team'].tolist()[0])
+            #           + '): ' + str(convert_to_seconds_plain(
+            #        int(st.session_state.gcdf.loc[st.session_state.gcdf['NAVN'] == rider]['time']))))
+
+            #                if st.session_state.gcdf.loc[st.session_state.gcdf['NAVN'] == rider]['team'] == 'Me':
+            #                    col2.write(":green[", str(int(st.session_state.gcdf.loc[st.session_state.gcdf['NAVN'] == rider][
+            #                                       'ranking'])) + '. ' + rider + ': ' + str(
+            #                    convert_to_seconds_plain(int(st.session_state.gcdf.loc[st.session_state.gcdf['NAVN'] == rider]['time']))), "]")
+            #                else:
+            #                    col2.write(str(int(st.session_state.gcdf.loc[st.session_state.gcdf['NAVN'] == rider][
+            #                                                      'ranking'])) + '. ' + rider + ': ' + str(
+            #                        convert_to_seconds_plain(
+            #                           int(st.session_state.gcdf.loc[st.session_state.gcdf['NAVN'] == rider]['time']))))
+
+            if st.session_state.rdf.shape[0] == 0:
+                j = j + 1
+                st.write(j)
+                st.session_state.gcdf['points'] = (1 / st.session_state.gcdf['ranking']) + st.session_state.gcdf[
+                    'points']
+                st.session_state.game_started = False
+                st.session_state.cards, st.session_state.rdf, st.session_state.riders = sammehold(
+                    st.session_state.gcdf)
+                st.session_state.gcdf['ranking'] = 0
+                st.write(st.session_state.gcdf[['NAVN', 'points']])
+                st.session_state['placering'] = 0
+
+    st.session_state.gcdf = st.session_state.gcdf.sort_values(by='points', ascending=True)
+    st.session_state.gcdf['stars'] = range(1, 10)
+    st.session_state.game_started = True
+    return st.session_state.gcdf
+    # st.session_state.human_chooses_cards = True
+
+    # col1.selectbox(st.session_state.riders2[0], st.session_state.riders2[1], st.session_state.riders2[2]]):
+    #    st.write('fall back')
+
+
 def get_length(track):
-    tr = track[0:track.find('F')]
+    tr = track[0:track.find('F') + 1]
     tr = tr.replace('-', '6')
     tr = tr.replace('_', '9')
+    tr = tr.replace('*', '^')
 
     tr = list(tr)
 
     for i in reversed(range(len(tr))):
-        # print(char)
-        if tr[i] in ['1', '2', '3', '4', '5','F']:
+
+        if tr[i] in ['1', '2', '3', '4', '5', 'F']:
             last = tr[i]
 
         if tr[i] == '^' or tr[i] == '*':
             tr[i] = last
 
+    tr = tr[0:tr.index('F')]
     sum = 0
     for number in tr:
-        sum = int(number) + sum
+        if number == 'F':
+            break
+        else:
+            sum = int(number) + sum
 
-    #sum
+    # sum
     # tr = tr.replace('^',last)
 
     for number in tr[-13::]:
         sum = sum - int(number) * 0.23
-        #print(number)
+        # print(number)
 
     sum = sum / 6
     return int(sum)
@@ -171,7 +312,7 @@ def sprint(sprint_group, cards, df):
     return cards
 
 
-def do_everything(df, printo=True):
+def do_everything(df, track, printo=True):
 
     with col3:
         #df['position'] = df['position'] + df['moved_fields']
@@ -339,7 +480,8 @@ def do_everything(df, printo=True):
                             group_numbers[k] = group_numbers[k] + 1
 
                     elif positions[i] > 2 + positions[i + 1]:
-                        st.write('Group', group_numbers[i], 'gets split on the ascent')
+                        if printo == True:
+                            st.write('Group', group_numbers[i], 'gets split on the ascent')
                         for j in range(i + 1, df.shape[0] - 1):
                             if group_numbers[j] == group_numbers[i + 1]:
                                 if printo == True:
@@ -630,10 +772,15 @@ def takes_lead_fc(rider, df):
     return takes_lead
 
 
-def nyehold(df):
+def nyehold(df, same=False):
     #global cards
-    df = df.head(66)
-    rdf = df.sample(9)
+    if same == True:
+        rdf = df[0:9]
+
+    elif same == False:
+        df = df.head(66)
+        df = df.iloc[1:]
+        rdf = df.sample(9)
     #rdf = df[0:9]
     rdf['team'] = 'V'
     rdf['team'][0:3] = 'Me'
@@ -703,7 +850,7 @@ def sammehold(df):
     rdf['method_takes_ECs'] = 1
     rdf['method_takes_ECs'][3:9] = 0
     rdf['takes_lead'] = 1
-    rdf['ranking'] = 1
+    rdf['ranking'] = 0
     rdf['played_card'] = ''
     rdf['moved_fields'] = 0
     rdf['position'] = 0
@@ -765,21 +912,20 @@ col4.title('The Riders')
 col4.write('------------')
 
 
-    #rdf = rdf.sort_values(by='position', ascending=False)
-#col3.write(st.session_state.rdf)
+
 
 #col3.write(st.session_state.cards)
 
 ##################
 #track = '^^1---------^^^^3__------------^^^^^^^^^4------^^^^^2_----^^1-----FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
-track = '-------^3------*2--^4--***2-----------*2-----^^3------^3-------FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
-track2 = colour_track(track[0:track.find('F')+1])
+track = st.session_state['track']
+track2 = colour_track(st.session_state['track'][0:st.session_state['track'].find('F')+1])
 #human_chooses_cards = False
 computer_chooses_cards = False
 ready_for_calculate = False
 
 
-st.session_state.level = col1.slider('Level',-10,10,0,1)
+#st.session_state.level = col1.slider('Level',-10,10,0,1)
 
 if st.session_state.game_started:
     with col3:
@@ -792,6 +938,7 @@ if st.session_state.game_started:
         st.write(':red[1,2,3,4,5] = end of ascent where group splits')
         st.write(':green[F] = Finish')
         st.write('---------')
+        st.subheader('Level: ' + str(st.session_state.level))
         #st.write('ryttere tilbage', len(st.session_state.riders))
 
 if st.session_state.game_started:
@@ -801,6 +948,8 @@ if st.session_state.game_started:
             for rider in st.session_state.rdf[st.session_state.rdf.team == team]['NAVN'].unique():
                 st.markdown(':green[' + rider + ']')
                 st.write('Flat:' + str(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['FLAD'])) + '  Uphill:' + str(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['BJERG'])) + '  Sprint:' + str(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['SPRINT'])))
+                #st.write('Stars:' + str(st.session_state.gcdf[st.session_state.gcdf.NAVN == rider]['stars']))
+
                 #st.caption()
                 #st.caption('Sprint:' + str(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['SPRINT'])))
                 flatlist = []
@@ -816,7 +965,7 @@ if st.session_state.game_started:
                     if j % 5 == 0:
                         flatstr = flatstr + '|'
 
-                st.caption('Flat:' + flatstr)
+
 
 
 
@@ -826,14 +975,14 @@ if st.session_state.game_started:
                     uplist.append(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['BJERG' + str(i)].tolist()[0]))
 
                 j = 0
-                flatstr = ''
+                upstr = ''
                 for i in uplist:
-                    flatstr = flatstr + str(i)
+                    upstr = upstr + str(i)
                     j = 1 + j
                     if j % 5 == 0:
-                        flatstr = flatstr + '|'
+                        upstr = upstr + '|'
 
-                st.caption('Flat:' + flatstr)
+                st.caption('Flat:' + flatstr + '  Up:' + upstr)
                 #st.caption(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['RESULTATER'].tolist()[0])
 
 
@@ -865,7 +1014,7 @@ if len(st.session_state.riders) > 0:
         checkbx = st.checkbox('choose', key=keystring, value=False)
 
         if checkbx:
-            col1.write(colour_track(track[st.session_state.cards[st.session_state.ryttervalg]["position"]:
+            col1.write(colour_track(st.session_state['track'][st.session_state.cards[st.session_state.ryttervalg]["position"]:
                                           st.session_state.cards[st.session_state.ryttervalg]["position"] + 10]))
             #st.session_state.ryttervalg = col1.number_input('?')
             #st.session_state.human_chooses_cards = 8
@@ -905,7 +1054,7 @@ if len(st.session_state.riders) > 0:
                     # st.session_state.rdf.loc[st.session_state.rdf['NAVN'] == st.session_state.ryttervalg, 'position'] = move_rider(st.session_state.rdf[[st.session_state.ryttervalg]['position']], played_card, track)
                     st.session_state.cards[st.session_state.ryttervalg]['position'], \
                     st.session_state.cards[st.session_state.ryttervalg]['moved_fields'] = move_rider(
-                        st.session_state.cards[st.session_state.ryttervalg]['position'], played_card, track)
+                        st.session_state.cards[st.session_state.ryttervalg]['position'], played_card, st.session_state['track'])
 
                     for card in st.session_state.cards[st.session_state.ryttervalg]['cards'][0:4]:
                         st.session_state.cards[st.session_state.ryttervalg]['discarded'].append(card)
@@ -935,28 +1084,40 @@ if len(st.session_state.riders) > 0:
 #st.session_state.riders = []
 tracks = ['Amstel Gold Race', 'Fleche Wallone']
 
+
+#st.session_state['track'] = '**1FFFFFF'
+
 if st.session_state.game_started == False:
-    st.session_state['trackname'] = col3.selectbox('Choose_course', tracks)
+    st.session_state['trackname'] = col1.radio('start new race', tracks)
+    checkbxtrack = col1.checkbox('choose', key='track_choose', value=False)
+    if checkbxtrack:
+        st.session_state.level = col1.slider('Level', -10, 10, 0, 1)
+        checkbxlevel = col1.checkbox('choose', key='level_choose', value=False)
+        checkbxtrack = False
+        if checkbxlevel:
+            if st.session_state['trackname'] == 'Fleche Wallone':
+                st.session_state['track'] = '-^4-----------------------****2----------^^^3----------^2------*****1FFFFFFFFFFFFFF'
+            elif st.session_state['trackname'] == 'Amstel Gold Race':
+                st.session_state['track'] = '-------^3------*2--^4--***2-----------*2-----^^3------^3-------FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
 
-    if st.session_state['trackname'] == 'Fleche Wallone':
-        track = '-^4-----------------------****2----------^^^3----------^2------******FFFFFFFFFFFFFF'
-    if st.session_state['trackname'] == 'Amstel Gold Race':
-        track = '-------^3------*2--^4--***2-----------*2-----^^3------^3-------FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
+            track2 = colour_track(st.session_state['track'][0:st.session_state['track'].find('F') + 1])
+            st.session_state.cards, st.session_state.rdf, st.session_state.gcdf, st.session_state.riders2 = nyehold(pd.read_csv('FRData -FRData.csv', encoding='utf-8'))
+            #col2.write('riders:')
+            #col2.write(st.session_state.riders)
+            #col2.write(st.session_state.cards)
+            #st.session_state.gcdf = simulate()
+            #st.session_state['placering'] = 0
+            st.session_state.riders = [st.session_state.riders2[0], st.session_state.riders2[1],
+                                       st.session_state.riders2[2]]
+            #st.session_state.riders = []
 
-    track2 = colour_track(track[0:track.find('F') + 1])
-    st.session_state.cards, st.session_state.rdf, st.session_state.gcdf, st.session_state.riders2 = nyehold(pd.read_csv('FRData -FRData.csv', encoding='utf-8'))
-    #col2.write('riders:')
-    #col2.write(st.session_state.riders)
-    #col2.write(st.session_state.cards)
-    st.session_state['placering'] = 0
-    st.session_state.riders = [st.session_state.riders2[0], st.session_state.riders2[1],
-                               st.session_state.riders2[2]]
-    #st.session_state.riders = []
+            st.session_state.human_chooses_cards = 9
+            col1.button('start game')
+            checkbxlevel = False
+            st.session_state.game_started = True
 
-    st.session_state.human_chooses_cards = 9
-    st.session_state.game_started = True
-
-
+if col3.button('Start new game'):
+    st.session_state.game_started == False
     #st.write('Uphill:', flatlist)
 #human_chooses_cards(st.session_state.cards, st.session_state.riders)
 
@@ -976,7 +1137,7 @@ with col1:
                 if st.session_state.cards[rider]['played_card'] == 0:
                     if len(st.session_state.cards[rider]['cards']) == 0:
                         st.session_state.cards[rider]['cards'].append(['EC15',2,2])
-                    st.session_state.cards[rider]['position'], st.session_state.cards[rider]['moved_fields'] = move_rider(st.session_state.cards[rider]['position'], st.session_state.cards[rider]['cards'][0], track, st.session_state.level)
+                    st.session_state.cards[rider]['position'], st.session_state.cards[rider]['moved_fields'] = move_rider(st.session_state.cards[rider]['position'], st.session_state.cards[rider]['cards'][0], st.session_state['track'], st.session_state.level)
                     st.write(rider, 'played', st.session_state.cards[rider]['cards'][0][0], st.session_state.cards[rider]['cards'][0][1], st.session_state.cards[rider]['cards'][0][2])
                     #st.write('position', st.session_state.cards[rider]['position'])
                     st.session_state.cards[rider]['played_card'] = st.session_state.cards[rider]['cards'][0]
@@ -991,7 +1152,7 @@ if st.session_state.ready_for_calculate:
         #col1.write('do_everything')
         st.session_state.rdf = transfer_positions(st.session_state.cards, st.session_state.rdf)
         #st.write(st.session_state.rdf.group.max())
-        st.session_state.rdf, sprint_groups = do_everything(st.session_state.rdf)
+        st.session_state.rdf, sprint_groups = do_everything(st.session_state.rdf, st.session_state.track)
 
 
         st.session_state.cards = transfer_ECs(st.session_state.rdf, st.session_state.cards)
@@ -1114,7 +1275,7 @@ with col2:
             time = 17*(max_position - st.session_state.rdf[st.session_state.rdf['group'] == i]['position'].max())
             time_string = convert_to_seconds(time)
             max_position = st.session_state.rdf['position'].max()
-            km_left = get_length(track[max_position::])
+            km_left = get_length(st.session_state['track'][max_position::])
             if i == 1:
                 st.header(str(km_left) + 'km left')
                 st.header('Group ' + str(i) + ' (' + time_string + ')')
@@ -1123,7 +1284,7 @@ with col2:
 
             minimum = int(st.session_state.rdf[st.session_state.rdf['group'] == i]['position'].min())
 
-            st.markdown(str(minimum) + ':   ' + colour_track(track[minimum:minimum+10]))
+            st.markdown(str(minimum) + ':   ' + colour_track(st.session_state['track'][minimum:minimum+10]))
             st.text('')
             riders = st.session_state.rdf[st.session_state.rdf['group'] == i].sort_values(by='position', ascending=False)['NAVN'].tolist()
             positions = st.session_state.rdf[st.session_state.rdf['group'] == i].sort_values(by='position', ascending=False)['position'].tolist()
@@ -1146,6 +1307,9 @@ with col2:
 
 
     #st.write(st.session_state.rdf[['NAVN', 'position', 'group', 'ECs','played_card','takes_lead','noECs', 'method_takes_ECs', 'prel_time', 'time', 'ranking']])
+
+
+##############
 
 
 
