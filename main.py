@@ -92,7 +92,7 @@ def tjek_bakke(pos1, pos2, track):
 def tjek_stejl(pos1, pos2, track):
     pos1 = int(pos1)
     pos2 = int(pos2)
-    if '*' in track[pos1:pos2]:
+    if '*' in track[pos1-1:pos2]:
         return 1
     else:
         return 0
@@ -230,6 +230,33 @@ def simulate():
     #    st.write('fall back')
 
 
+def get_value(track):
+    st.write(track)
+    tr = track[0:track.find('F') + 1]
+    tr = tr.replace('-', '8')
+    tr = tr.replace('_', '9')
+    tr = tr.replace('*', '^')
+
+    tr = list(tr)
+
+    for i in reversed(range(len(tr))):
+
+        if tr[i] in ['1', '2', '3', '4', '5', 'F']:
+            last = tr[i]
+
+        if tr[i] == '^' or tr[i] == '*':
+            tr[i] = last
+
+    tr = tr[0:tr.index('F')]
+    #st.write(tr)
+    sum = 0
+    for number in tr:
+        #st.write(number)
+        sum = int(number) + sum
+    st.write('success')
+    return 8 - sum / len(tr)
+
+
 def get_length(track):
     tr = track[0:track.find('F') + 1]
     tr = tr.replace('-', '6')
@@ -319,12 +346,14 @@ def do_everything(df, track, printo=True):
         # move riders
         #df['takes_lead'] = np.random.randint(0, 2, df.shape[0])
         df = df.sort_values(by='old_position', ascending = False)
+
+
         if printo == True:
             st.header('1. MOVE')
         df['tl2'] = df['takes_lead'] * df['position']
 
         for i in range(1, df['group'].max() + 1):
-            print(i)
+
             df.loc[df['group'] == i, ['tl2']] = df[df['group'] == i].tl2.max()
 
         # df['position'] = np.minimum(df['index2'], df['tl2'])
@@ -352,6 +381,12 @@ def do_everything(df, track, printo=True):
         if printo == True:
 
             st.header('2. EXHAUSTION CARDS')
+
+            if df.group.max() == 1:
+                df['takes_lead'] = 1
+                if printo == True:
+                    st.write('Rider cannot refrain from leading when there is only one group.')
+
         df['ECs'] = 0
         # df['played_card'] = 'kort 5'
         # df['played_card'][0:4] = 'kort 10'
@@ -390,15 +425,19 @@ def do_everything(df, track, printo=True):
         #WRITE!!!
             for i in range(0, df.shape[0]):
                 if df.iloc[i]['ECs'] > 1:
+                    if df.iloc[i]['noECs_stejl'] > 1:
+                        st.write(':red[', df.iloc[i]['NAVN'], '] takes 2 exhaustion cards for playing card no 1-5 on a steep hill')
 
-                    st.write(':red[', df.iloc[i]['NAVN'], '] takes 2 exhaustion cards for playing card no 1-5 and taking the lead in the group')
+                    else:
+                        st.write(':red[', df.iloc[i]['NAVN'], '] takes 2 exhaustion cards for playing card no 1-5 and taking the lead in the group')
                 if df.iloc[i]['ECs'] == 1:
                     if df.iloc[i]['noECs_bakke'] == 0:
                         st.write(':red[', df.iloc[i]['NAVN'], ']takes 1 exhaustion card for playing card no 6-10 and taking the lead in the group')
+                    if df.iloc[i]['noECs_stejl'] == 1:
+                        st.write(':red[', df.iloc[i]['NAVN'], ']takes 1 exhaustion card for playing card no 6-10 on a steep hill')
+
                     if df.iloc[i]['noECs_bakke'] == 1:
                         st.write(':red[', df.iloc[i]['NAVN'], ']takes 1 exhaustion card for playing card no 1-5 on an ascent')
-                    if df.iloc[i]['noECs_bakke'] == 2:
-                        st.write(':red[', df.iloc[i]['NAVN'], ']takes 2 exhaustion cards for playing card no 1-5 on a steep ascent')
 
             #col3.write(df[['NAVN', 'old_position', 'moved_fields', 'position', 'noECs_bakke', 'ECs', 'noECs', 'method_takes_ECs']])
 
@@ -772,7 +811,7 @@ def takes_lead_fc(rider, df):
     return takes_lead
 
 
-def nyehold(df, same=False):
+def nyehold(df, same=False, track = st.session_state.track):
     #global cards
     if same == True:
         rdf = df[0:9]
@@ -806,6 +845,12 @@ def nyehold(df, same=False):
 
     riders = rdf.NAVN.tolist()
 
+    track = track[0:track.find('F')+1]
+    rdf['favorit'] = (rdf['BJERG'] - 50) * get_value(track) + get_value(track[int(len(track) / 2):len(track)]) + df[
+        'SPRINT'] * 2 + (rdf['BJERG 3'] - 21) * 6 * get_value(track[-10::]) + (rdf['FLAD'] - 60) / (
+                             1 + get_value(track[-17::]))
+    rdf = rdf.sort_values(by='favorit', ascending=True)
+    rdf['favorit'] = range(1, 10)
 
     cards = {}
     i = -1
@@ -946,9 +991,15 @@ if st.session_state.game_started:
         for team in st.session_state.rdf['team'].unique():
             st.title(':blue[' + team + ']')
             for rider in st.session_state.rdf[st.session_state.rdf.team == team]['NAVN'].unique():
-                st.markdown(':green[' + rider + ']')
+                stars = ''
+                for i in range(int(st.session_state.gcdf[st.session_state.rdf.NAVN == rider]['favorit'])):
+                    if i % 2 == 0:
+                        stars = stars + '*'
+                st.markdown(':green[' + rider + ' ' + stars + ']')
                 st.write('Flat:' + str(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['FLAD'])) + '  Uphill:' + str(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['BJERG'])) + '  Sprint:' + str(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['SPRINT'])))
-                #st.write('Stars:' + str(st.session_state.gcdf[st.session_state.gcdf.NAVN == rider]['stars']))
+
+
+
 
                 #st.caption()
                 #st.caption('Sprint:' + str(int(st.session_state.rdf[st.session_state.rdf.NAVN == rider]['SPRINT'])))
@@ -1101,8 +1152,9 @@ if st.session_state.game_started == False:
                 st.session_state['track'] = '-------^3------*2--^4--***2-----------*2-----^^3------^3-------FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
 
             track2 = colour_track(st.session_state['track'][0:st.session_state['track'].find('F') + 1])
-            st.session_state.cards, st.session_state.rdf, st.session_state.gcdf, st.session_state.riders2 = nyehold(pd.read_csv('FRData -FRData.csv', encoding='utf-8'))
-            #col2.write('riders:')
+            col2.write(st.session_state['track'])
+            st.session_state.cards, st.session_state.rdf, st.session_state.gcdf, st.session_state.riders2 = nyehold(pd.read_csv('FRData -FRData.csv', encoding='utf-8'), False, st.session_state['track'])
+
             #col2.write(st.session_state.riders)
             #col2.write(st.session_state.cards)
             #st.session_state.gcdf = simulate()
@@ -1245,6 +1297,10 @@ if st.session_state.ready_for_calculate:
 
         #col1.selectbox(st.session_state.riders2[0], st.session_state.riders2[1], st.session_state.riders2[2]]):
         #    st.write('fall back')
+        
+
+            #st.session_state.ready_for_calculate = False
+
         if col1.button('start new round'):
             for rider in [st.session_state.riders2[0], st.session_state.riders2[1], st.session_state.riders2[2]]:
                 st.write('start new round')
