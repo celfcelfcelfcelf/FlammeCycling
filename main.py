@@ -1168,8 +1168,8 @@ if st.session_state.game_started == False:
             checkbxlevel = False
             st.session_state.game_started = True
 
-if col3.button('Start new game'):
-    st.session_state.game_started == False
+#if col3.button('Start new game'):
+#    st.session_state.game_started == False
     #st.write('Uphill:', flatlist)
 #human_chooses_cards(st.session_state.cards, st.session_state.riders)
 
