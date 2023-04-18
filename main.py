@@ -231,7 +231,7 @@ def simulate():
 
 
 def get_value(track):
-    st.write(track)
+    #st.write(track)
     tr = track[0:track.find('F') + 1]
     tr = tr.replace('-', '8')
     tr = tr.replace('_', '9')
@@ -253,7 +253,7 @@ def get_value(track):
     for number in tr:
         #st.write(number)
         sum = int(number) + sum
-    st.write('success')
+    #st.write('success')
     return 8 - sum / len(tr)
 
 
