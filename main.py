@@ -846,11 +846,7 @@ def nyehold(df, same=False, track = st.session_state.track):
     riders = rdf.NAVN.tolist()
 
     track = track[0:track.find('F')+1]
-    rdf['favorit'] = (rdf['BJERG'] - 50) * get_value(track) + get_value(track[int(len(track) / 2):len(track)]) + df[
-        'SPRINT'] * 2 + (rdf['BJERG 3'] - 21) * 6 * get_value(track[-10::]) + (rdf['FLAD'] - 60) / (
-                             1 + get_value(track[-17::]))
-    rdf = rdf.sort_values(by='favorit', ascending=True)
-    rdf['favorit'] = range(1, 10)
+
 
     cards = {}
     i = -1
@@ -872,12 +868,21 @@ def nyehold(df, same=False, track = st.session_state.track):
         for j in range(15):
             cards[rider]['cards'].append(['kort: ' + str(j + 1), int(rdf.iloc[i, 17 + j]), int(rdf.iloc[i, 32 + j])])
 
+
+
         random.shuffle(cards[rider]['cards'])
         #cards['select']={}
+    
 
-        gcdf = rdf.copy()
-        gcdf['prel_time'] = 1000
 
+    rdf['favorit'] = (rdf['BJERG'] - 50) * get_value(track) + get_value(track[int(len(track) / 2):len(track)]) + df[
+        'SPRINT'] * 2 + (rdf['BJERG 3'] - 21) * 6 * get_value(track[-10::]) + (rdf['FLAD'] - 60) / (
+                             1 + get_value(track[-17::]))
+    rdf = rdf.sort_values(by='favorit', ascending=True)
+    rdf['favorit'] = range(1, 10)
+    gcdf = rdf.copy()
+    gcdf['prel_time'] = 1000
+    
     return cards, rdf, gcdf, riders
 
 def sammehold(df):
