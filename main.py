@@ -979,6 +979,8 @@ ready_for_calculate = False
 
 if st.session_state.game_started:
     with col3:
+        st.write('[The rules](https://docs.google.com/document/d/1y1VYN319_xGjjzF7sfPihixB8yjLmWH7yoMsEkzCpfU/edit)')
+
         st.write(st.session_state['trackname'] + '. Full Track: ' + track2)
         st.write('---------')
         st.write('-' + '= flat')
@@ -993,11 +995,11 @@ if st.session_state.game_started:
 
 if st.session_state.game_started:
     with col4:
-        for team in st.session_state.rdf['team'].unique():
+        for team in ['Me','Comp1','Comp2']:
             st.title(':blue[' + team + ']')
-            for rider in st.session_state.rdf[st.session_state.rdf.team == team]['NAVN'].unique():
+            for rider in st.session_state.rdf[st.session_state.gcdf.team == team]['NAVN'].unique():
                 stars = ''
-                for i in range(int(st.session_state.gcdf[st.session_state.rdf.NAVN == rider]['favorit'])):
+                for i in range(int(st.session_state.gcdf[st.session_state.gcdf.NAVN == rider]['favorit'])):
                     if i % 2 == 0:
                         stars = stars + '*'
                 st.markdown(':green[' + rider + ' ' + stars + ']')
