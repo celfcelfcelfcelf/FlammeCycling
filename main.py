@@ -1159,7 +1159,7 @@ if st.session_state.game_started == False:
                 st.session_state['track'] = '-------^3------*2--^4--***2-----------*2-----^^3------^3-------FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'
             elif st.session_state['trackname'] == 'Liege-Bastogne-Liege':
                 st.session_state['track'] = '--^^^^4___---------^^3----------****2_--------------^^^2-------------FFFFFFFFF'
-           elif st.session_state['trackname'] == 'World Championship 2019 (Yorkshire)':
+            elif st.session_state['trackname'] == 'World Championship 2019 (Yorkshire)':
                 st.session_state['track'] = '------------^3--------------^3--------------^3--------------^3------FFFFFFFFF'
            
             track2 = colour_track(st.session_state['track'][0:st.session_state['track'].find('F') + 1])
