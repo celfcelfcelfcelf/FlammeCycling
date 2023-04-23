@@ -233,7 +233,7 @@ def simulate():
 def get_value(track):
     #st.write(track)
     tr = track[0:track.find('F') + 1]
-    tr = tr.replace('-', '8')
+    tr = tr.replace('-', '6')
     tr = tr.replace('_', '9')
     tr = tr.replace('*', '^')
 
@@ -254,7 +254,7 @@ def get_value(track):
         #st.write(number)
         sum = int(number) + sum
     #st.write('success')
-    return 8 - sum / len(tr)
+    return 6 - sum / len(tr)
 
 
 def get_length(track):
@@ -875,8 +875,8 @@ def nyehold(df, same=False, track = st.session_state.track):
     
 
 
-    rdf['favorit'] = (rdf['BJERG'] - 50) * get_value(track) + get_value(track[int(len(track) / 2):len(track)]) + df[
-        'SPRINT'] * 2 + (rdf['BJERG 3'] - 21) * 6 * get_value(track[-10::]) + (rdf['FLAD'] - 60) / (
+    rdf['favorit'] = (rdf['BJERG'] - 50) * (get_value(track) + get_value(track[int(len(track) / 2):len(track)])) + df[
+        'SPRINT'] * 4 + (rdf['BJERG 3'] - 18) * 10 * get_value(track[-10::]) + (rdf['FLAD'] - 60) / (
                              1 + get_value(track[-17::]))
     rdf = rdf.sort_values(by='favorit', ascending=True)
     rdf['favorit'] = range(1, 10)
