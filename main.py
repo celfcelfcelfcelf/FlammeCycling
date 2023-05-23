@@ -1019,19 +1019,8 @@ ready_for_calculate = False
 
 if st.session_state.game_started:
     with col3:
-        st.write('[The rules](https://docs.google.com/document/d/1y1VYN319_xGjjzF7sfPihixB8yjLmWH7yoMsEkzCpfU/edit)')
+        
 
-
-        st.write(st.session_state['trackname'] + '. Full Track: ' + track2)
-        st.write('---------')
-        st.write('-' + '= flat')
-        st.write(':blue[_] = downhill')
-        st.write(':red[^] = uphill')
-        st.write(':red[*] = steep uphill')
-        st.write(':red[1,2,3,4,5] = end of ascent where group splits')
-        st.write(':green[F] = Finish')
-        st.write('---------')
-        st.subheader('Level: ' + str(st.session_state.level))
         #st.write('ryttere tilbage', len(st.session_state.riders))
 
     with col3:
@@ -1068,7 +1057,9 @@ if st.session_state.game_started:
             #"+fontColor+"
             st.markdown('<p style="background-color:{};color:black;font-size:12px;border-radius:0%;">{}</p>'.format(colour, text),
                         unsafe_allow_html=True)
-
+            
+        st.write('[The rules](https://docs.google.com/document/d/1y1VYN319_xGjjzF7sfPihixB8yjLmWH7yoMsEkzCpfU/edit)')
+    
         #st.markdown(line)
 
 if st.session_state.game_started:
