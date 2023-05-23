@@ -1017,7 +1017,7 @@ ready_for_calculate = False
 
 #st.session_state.level = col1.slider('Level',-10,10,0,1)
 
-if st.session_state.game_started > 14:
+if st.session_state.game_started:
     with col3:
         st.write('[The rules](https://docs.google.com/document/d/1y1VYN319_xGjjzF7sfPihixB8yjLmWH7yoMsEkzCpfU/edit)')
 
@@ -1034,40 +1034,40 @@ if st.session_state.game_started > 14:
         st.subheader('Level: ' + str(st.session_state.level))
         #st.write('ryttere tilbage', len(st.session_state.riders))
 
-with col3:
-    #st.write()
-    min_position = st.session_state.rdf['position'].min()
-    for i in range(min_position, track.find('F')+1):
-        text = str(i)
-        color = '#999999'
-        if track[i] == '_':
-            colour = '#2986cc'
-        if track[i] == '^':
-            colour = '#cc0000'
-        if track[i] == '*':
-            colour = '#c809b8'
-            text = text + 'STEJL'
-        if track[i] == '-':
-            colour = '#999999'
-        if track[i] == 'F':
-            colour = '#ffc30b'
-        if track[i] in ['1','2','3','4','5']:
-            colour = '#cc0000'
-            text = text + ': (VEDHÆNG ' + track[i] + ')'
+    with col3:
+        #st.write()
+        min_position = st.session_state.rdf['position'].min()
+        for i in range(min_position, track.find('F')+1):
+            text = str(i)
+            color = '#999999'
+            if track[i] == '_':
+                colour = '#2986cc'
+            if track[i] == '^':
+                colour = '#cc0000'
+            if track[i] == '*':
+                colour = '#c809b8'
+                text = text + 'STEJL'
+            if track[i] == '-':
+                colour = '#999999'
+            if track[i] == 'F':
+                colour = '#ffc30b'
+            if track[i] in ['1','2','3','4','5']:
+                colour = '#cc0000'
+                text = text + ': (VEDHÆNG ' + track[i] + ')'
 
-        riders_on_field = st.session_state.rdf[st.session_state.rdf['position'] == i].NAVN.tolist()
-        if len(riders_on_field) > 0:
-            text = text + ': GROUP ' + str(st.session_state.rdf[st.session_state.rdf['position'] == i].group.tolist()[0])
-            for rider in riders_on_field:
-                team = st.session_state.rdf[st.session_state.rdf['NAVN'] == rider].team.tolist()[0]
-                text = text + ', ' + str(rider) + ' (' + team + ')'
+            riders_on_field = st.session_state.rdf[st.session_state.rdf['position'] == i].NAVN.tolist()
+            if len(riders_on_field) > 0:
+                text = text + ': GROUP ' + str(st.session_state.rdf[st.session_state.rdf['position'] == i].group.tolist()[0])
+                for rider in riders_on_field:
+                    team = st.session_state.rdf[st.session_state.rdf['NAVN'] == rider].team.tolist()[0]
+                    text = text + ', ' + str(rider) + ' (' + team + ')'
 
 
-        #yellow = #ffc30b
-        #blue = # 2986cc
-        #"+fontColor+"
-        st.markdown('<p style="background-color:{};color:black;font-size:12px;border-radius:0%;">{}</p>'.format(colour, text),
-                    unsafe_allow_html=True)
+            #yellow = #ffc30b
+            #blue = # 2986cc
+            #"+fontColor+"
+            st.markdown('<p style="background-color:{};color:black;font-size:12px;border-radius:0%;">{}</p>'.format(colour, text),
+                        unsafe_allow_html=True)
 
         #st.markdown(line)
 
