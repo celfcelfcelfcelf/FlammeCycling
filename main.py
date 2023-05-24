@@ -1332,7 +1332,7 @@ def pick_card(rider, track):
     ideal_move = ideal_move + random.random() * 2
     ideal_move = ideal_move - random.random() * 2
     #st.write(rider)
-    st.write(ideal_move)
+    #st.write(ideal_move)
 
     if uphill == True:
         print(rider['cards'][0:4])
